@@ -6,8 +6,17 @@ interface ProfileEditorProps {
   onUpdate: (data: FormData) => Promise<void>;
 }
 
+interface ProfileFormData {
+  about: string;
+  disciplines: string;  // This should be a string, not boolean
+  research_interests: string;
+  office_location: string;
+  office_hours: string;
+  is_profile_public: boolean;
+}
+
 export const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onUpdate }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProfileFormData>({
     about: user.about || '',
     disciplines: user.disciplines?.join(', ') || '',
     research_interests: user.research_interests || '',
@@ -30,13 +39,24 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onUpdate }) 
     e.preventDefault();
     
     const data = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
-      if (key === 'disciplines') {
-        data.append(key, JSON.stringify(value.split(',').map(d => d.trim()).filter(Boolean)));
-      } else {
-        data.append(key, value.toString());
-      }
-    });
+    
+    // Handle each field explicitly with proper type checking
+    data.append('about', formData.about);
+    data.append('research_interests', formData.research_interests);
+    data.append('office_location', formData.office_location);
+    data.append('office_hours', formData.office_hours);
+    data.append('is_profile_public', formData.is_profile_public.toString());
+    
+    // Handle disciplines specially
+    if (formData.disciplines) {
+      const disciplinesArray = formData.disciplines
+        .split(',')
+        .map(d => d.trim())
+        .filter(Boolean);
+      data.append('disciplines', JSON.stringify(disciplinesArray));
+    } else {
+      data.append('disciplines', JSON.stringify([]));
+    }
     
     if (profilePicture) {
       data.append('profile_picture', profilePicture);
