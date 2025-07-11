@@ -15,8 +15,7 @@ import mimetypes
 from pathlib import Path
 
 # Import the figures router
-from api import figures
-
+from .api import figures
 # Set correct MIME types
 mimetypes.add_type('text/css', '.css')
 mimetypes.add_type('application/javascript', '.js')
