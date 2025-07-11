@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 import io
 import json
+import re
 
 from ..database import get_db
 from ..models.user import User
@@ -12,9 +13,25 @@ from ..schemas.user import UserCreate, UserUpdate, UserResponse, UserProfileUpda
 from ..core.auth import get_current_active_user, require_main_coordinator
 from ..core.security import get_password_hash
 from ..core.config import settings
-from ..utils.slug import create_slug
 
 router = APIRouter()
+
+def create_slug(text: str) -> str:
+    """Create a URL-friendly slug from text"""
+    if not text:
+        return ""
+    
+    # Convert to lowercase
+    text = text.lower()
+    
+    # Replace spaces and special characters with hyphens
+    text = re.sub(r'[^\w\s-]', '', text)
+    text = re.sub(r'[-\s]+', '-', text)
+    
+    # Remove leading/trailing hyphens
+    text = text.strip('-')
+    
+    return text
 
 @router.get("/", response_model=List[UserResponse])
 async def get_users(
