@@ -21,14 +21,30 @@ except Exception as e:
     exit(1)
 "
 
-echo "3. Running database migrations..."
-python -c "
+echo "3. Running Alembic migrations..."
+# Check if alembic is properly configured
+if [ -f alembic.ini ]; then
+    echo "Running database migrations with Alembic..."
+    alembic upgrade head || {
+        echo "⚠️  Alembic migration failed, falling back to SQLAlchemy create_all"
+        python -c "
 from app.database import engine
 from app.models import Base
 print('Creating/updating database tables...')
 Base.metadata.create_all(bind=engine)
 print('✓ Database tables ready')
 "
+    }
+else
+    echo "No alembic.ini found, using SQLAlchemy create_all..."
+    python -c "
+from app.database import engine
+from app.models import Base
+print('Creating/updating database tables...')
+Base.metadata.create_all(bind=engine)
+print('✓ Database tables ready')
+"
+fi
 
 echo "4. Testing database storage..."
 python -c "
@@ -50,6 +66,20 @@ if [ -f create_admin.py ]; then
     python create_admin.py || echo "Admin user might already exist"
 else
     echo "Warning: create_admin.py not found, skipping admin creation"
+fi
+
+echo "6. Creating/verifying supervisor accounts..."
+if [ -f create_supervisors.py ]; then
+    python create_supervisors.py || echo "Some supervisors might already exist"
+else
+    echo "Warning: create_supervisors.py not found, skipping supervisor creation"
+fi
+
+echo "7. Migrating existing supervisor data..."
+if [ -f migrate_supervisors.py ]; then
+    python migrate_supervisors.py || echo "Migration might have already been completed"
+else
+    echo "Warning: migrate_supervisors.py not found, skipping supervisor migration"
 fi
 
 echo "=== Admin Portal Build Completed Successfully ==="
