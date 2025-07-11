@@ -45,7 +45,8 @@ class User(BaseModel):
     created_projects = relationship(
         "Project", 
         back_populates="created_by_user",
-        foreign_keys="Project.created_by_id"
+        foreign_keys="[Project.created_by_id]",  # Explicit foreign key
+        primaryjoin="User.id==Project.created_by_id"  # Explicit join condition
     )
     supervised_projects = relationship(
         "Project", 
