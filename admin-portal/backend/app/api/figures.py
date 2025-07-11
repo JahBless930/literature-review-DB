@@ -128,3 +128,42 @@ async def delete_figure(
     # Check permissions
     project = figure.project
     if current_user.role != "main_coordinator" and project.created_by_id != current_user.id:
+                raise HTTPException(403, "Not authorized to delete this figure")
+    
+    db.delete(figure)
+    db.commit()
+    
+    return {"message": "Figure deleted successfully"}
+
+@router.put("/figures/{figure_id}")
+async def update_figure(
+    figure_id: int,
+    title: Optional[str] = Form(None),
+    caption: Optional[str] = Form(None),
+    order_index: Optional[int] = Form(None),
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Update figure details"""
+    figure = db.query(ProjectFigure).filter(ProjectFigure.id == figure_id).first()
+    if not figure:
+        raise HTTPException(404, "Figure not found")
+    
+    # Check permissions
+    project = figure.project
+    if current_user.role != "main_coordinator" and project.created_by_id != current_user.id:
+        raise HTTPException(403, "Not authorized to update this figure")
+    
+    # Update fields
+    if title is not None:
+        figure.title = title
+    if caption is not None:
+        figure.caption = caption
+    if order_index is not None:
+        figure.order_index = order_index
+    
+    db.commit()
+    db.refresh(figure)
+    
+    figure.url = f"/api/figures/{figure.id}/image"
+    return figure
