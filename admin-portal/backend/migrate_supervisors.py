@@ -79,7 +79,7 @@ def migrate_supervisors():
             print("\n⚠️  Projects with unmatched supervisors:")
             for proj_id, title, supervisor in not_found[:10]:  # Show first 10
                 print(f"   - Project {proj_id}: '{title[:40]}...' → '{supervisor}'")
-                        if len(not_found) > 10:
+            if len(not_found) > 10:  # FIXED INDENTATION HERE
                 print(f"   ... and {len(not_found) - 10} more")
         
     except Exception as e:
