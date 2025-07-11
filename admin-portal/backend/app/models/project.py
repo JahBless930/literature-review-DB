@@ -42,6 +42,13 @@ class Project(BaseModel):
     view_count = Column(Integer, default=0)
     download_count = Column(Integer, default=0)
     
-    # User Relationship
+    # User Relationships
     created_by_id = Column(Integer, ForeignKey("users.id"))
     created_by_user = relationship("User", back_populates="created_projects")
+    
+    # Supervisor Relationship
+    supervisor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    supervisor_user = relationship("User", back_populates="supervised_projects", foreign_keys=[supervisor_id])
+    
+    # Figures Relationship
+    figures = relationship("ProjectFigure", back_populates="project", cascade="all, delete-orphan", order_by="ProjectFigure.order_index")
