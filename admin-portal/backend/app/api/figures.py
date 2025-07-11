@@ -49,4 +49,85 @@ async def upload_figure(
     try:
         img = Image.open(io.BytesIO(image_data))
         width, height = img.size
-    except:
+        except:
+        width, height = None, None
+    
+    # Create figure record
+    figure = ProjectFigure(
+        project_id=project_id,
+        title=title,
+        caption=caption,
+        order_index=order_index,
+        filename=file.filename,
+        size=len(image_data),
+        data=image_data,
+        content_type=file.content_type,
+        width=width,
+        height=height,
+        uploaded_by_id=current_user.id
+    )
+    
+    db.add(figure)
+    db.commit()
+    db.refresh(figure)
+    
+    # Add URL to response
+    figure.url = f"/api/figures/{figure.id}/image"
+    return figure
+
+@router.get("/projects/{project_id}/figures", response_model=List[ProjectFigureResponse])
+async def get_project_figures(
+    project_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get all figures for a project"""
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(404, "Project not found")
+    
+    figures = db.query(ProjectFigure).filter(
+        ProjectFigure.project_id == project_id
+    ).order_by(ProjectFigure.order_index).all()
+    
+    # Add URLs
+    for figure in figures:
+        figure.url = f"/api/figures/{figure.id}/image"
+    
+    return figures
+
+@router.get("/figures/{figure_id}/image")
+async def get_figure_image(
+    figure_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get figure image data"""
+    figure = db.query(ProjectFigure).filter(ProjectFigure.id == figure_id).first()
+    if not figure:
+        raise HTTPException(404, "Figure not found")
+    
+    return StreamingResponse(
+        io.BytesIO(figure.data),
+        media_type=figure.content_type
+    )
+
+@router.delete("/figures/{figure_id}")
+async def delete_figure(
+    figure_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a figure"""
+    figure = db.query(ProjectFigure).filter(ProjectFigure.id == figure_id).first()
+    if not figure:
+        raise HTTPException(404, "Figure not found")
+    
+    # Check permissions
+    project = figure.project
+    if current_user.role != "main_coordinator" and project.created_by_id != current_user.id:
+        raise HTTPException(403, "Not authorized to delete this figure")
+    
+    db.delete(figure)
+    db.commit()
+    
+    return {"message": "Figure deleted successfully"}
