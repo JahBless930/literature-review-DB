@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, ForeignKey, DateTime
+from sqlalchemy import Column, String, Text, Boolean, Integer, DateTime, ForeignKey, LargeBinary
 from sqlalchemy.orm import relationship
 from .base import BaseModel
 
@@ -16,6 +16,23 @@ class User(BaseModel):
     department = Column(String(255))
     phone = Column(String(20))
     
+    # Extended Profile Information
+    about = Column(Text, nullable=True)
+    disciplines = Column(Text, nullable=True)  # JSON array or comma-separated
+    research_interests = Column(Text, nullable=True)
+    office_location = Column(String(255), nullable=True)
+    office_hours = Column(String(255), nullable=True)
+    
+    # Profile Picture Storage
+    profile_picture_filename = Column(String, nullable=True)
+    profile_picture_size = Column(Integer, nullable=True)
+    profile_picture_data = Column(LargeBinary, nullable=True)
+    profile_picture_content_type = Column(String, nullable=True)
+    
+    # Public Profile Settings
+    is_profile_public = Column(Boolean, default=True)
+    profile_slug = Column(String, unique=True, index=True, nullable=True)
+    
     # Role & Status
     role = Column(String(50), default="faculty")  # "main_coordinator", "faculty"
     is_active = Column(Boolean, default=True)
@@ -26,6 +43,7 @@ class User(BaseModel):
     
     # Relationships
     created_projects = relationship("Project", back_populates="created_by_user")
+    supervised_projects = relationship("Project", back_populates="supervisor_user", foreign_keys="Project.supervisor_id")
     
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', email='{self.email}', role='{self.role}')>"
