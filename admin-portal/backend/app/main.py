@@ -16,6 +16,8 @@ from pathlib import Path
 
 # Import the figures router
 from .api import figures
+app.include_router(figures.router, prefix="/api", tags=["figures"])
+
 # Set correct MIME types
 mimetypes.add_type('text/css', '.css')
 mimetypes.add_type('application/javascript', '.js')
