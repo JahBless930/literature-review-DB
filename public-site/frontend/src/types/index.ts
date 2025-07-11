@@ -33,7 +33,10 @@ export interface ProjectSummary {
   abstract?: string;
   research_area?: string;
   degree_type?: string;
+  academic_year?: string; 
   institution?: string;
+  department?: string;
+  supervisor?: string;
   author_name: string;
   publication_date: string;
   view_count?: number;
