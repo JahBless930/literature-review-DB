@@ -25,3 +25,6 @@ class ProjectFigure(BaseModel):
     height = Column(Integer, nullable=True)
     uploaded_by_id = Column(Integer, ForeignKey("users.id"))
     uploaded_by = relationship("User")
+    
+    def __repr__(self):
+        return f"<ProjectFigure(id={self.id}, title='{self.title}', project_id={self.project_id})>"
