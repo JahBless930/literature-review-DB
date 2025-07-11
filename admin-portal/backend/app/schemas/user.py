@@ -11,6 +11,15 @@ class UserBase(BaseModel):
     phone: Optional[str] = None
     role: str = "faculty"
     
+    # Extended Profile Fields
+    about: Optional[str] = None
+    disciplines: Optional[List[str]] = None
+    research_interests: Optional[str] = None
+    office_location: Optional[str] = None
+    office_hours: Optional[str] = None
+    is_profile_public: bool = True
+    profile_slug: Optional[str] = None
+    
     @validator('username')
     def username_must_be_valid(cls, v):
         if len(v) < 3:
@@ -49,11 +58,21 @@ class UserUpdate(BaseModel):
             raise ValueError('Role must be either "faculty" or "main_coordinator"')
         return v
 
+class UserProfileUpdate(BaseModel):
+    about: Optional[str] = None
+    disciplines: Optional[List[str]] = None
+    research_interests: Optional[str] = None
+    office_location: Optional[str] = None
+    office_hours: Optional[str] = None
+    is_profile_public: Optional[bool] = None
+
 class UserResponse(UserBase):
     id: int
     is_active: bool
     created_at: datetime
     project_count: Optional[int] = 0  # Number of projects created by user
+    has_profile_picture: bool = False
+    profile_url: Optional[str] = None
     
     class Config:
         from_attributes = True
