@@ -36,6 +36,64 @@ export interface User {
   role: string;
   is_active: boolean;
   created_at: string;
+  
+  // Extended Profile Fields
+  about?: string;
+  disciplines?: string[];
+  research_interests?: string;
+  office_location?: string;
+  office_hours?: string;
+  is_profile_public: boolean;
+  profile_slug?: string;
+  has_profile_picture: boolean;
+  profile_url?: string;
+}
+
+export interface UserProfile {
+  id: number;
+  full_name: string;
+  email: string;
+  institution?: string;
+  department?: string;
+  about?: string;
+  disciplines?: string[];
+  research_interests?: string;
+  office_location?: string;
+  office_hours?: string;
+  profile_picture_url?: string;
+  supervised_projects?: ProjectSummary[];
+}
+
+export interface ProjectSummary {
+  id: number;
+  title: string;
+  slug: string;
+  author_name: string;
+  academic_year?: string;
+  degree_type?: string;
+}
+
+export interface ProjectFigure {
+  id: number;
+  project_id: number;
+  title: string;
+  caption?: string;
+  order_index: number;
+  filename: string;
+  size: number;
+  content_type: string;
+  width?: number;
+  height?: number;
+  url: string;
+  created_at: string;
+}
+
+export interface SupervisorInfo {
+  id: string;
+  name: string;
+  email: string;
+  institution: string;
+  title: string;
 }
 
 export interface Project {
@@ -65,6 +123,11 @@ export interface Project {
   created_at: string;
   meta_description?: string;
   meta_keywords?: string;
+  
+  // New fields
+  supervisor_id?: number;
+  supervisor_user?: UserProfile;
+  figures?: ProjectFigure[];
 }
 
 export interface DashboardStats {
