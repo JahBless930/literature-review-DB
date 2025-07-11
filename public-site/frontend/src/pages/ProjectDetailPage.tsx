@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -30,6 +30,7 @@ import {
   Public as PublicIcon
 } from '@mui/icons-material';
 import { apiService, Project } from '../services/api';
+import { ProjectFigure, UserProfile } from '../types';
 import DocumentViewer from '../components/DocumentViewer';
 import SEOHead from '../components/SEOHead';
 import StructuredData from '../components/StructuredData';
@@ -49,6 +50,8 @@ const ProjectDetailPage: React.FC = () => {
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
+  const [figures, setFigures] = useState<ProjectFigure[]>([]);
+  const [supervisor, setSupervisor] = useState<UserProfile | null>(null);
 
   // Add this near the top of your component
   const buttonId = React.useRef(`btn-${Date.now()}-${Math.random()}`);
@@ -64,6 +67,26 @@ const ProjectDetailPage: React.FC = () => {
       const data = await apiService.getProjectBySlug(projectSlug);
       if (data) {
         setProject(data);
+        
+        // Fetch figures
+        if (data.id) {
+          try {
+            const figuresResponse = await apiService.get(`/projects/${data.id}/figures`);
+            setFigures(figuresResponse.data);
+          } catch (err) {
+            console.error('Error fetching figures:', err);
+          }
+        }
+        
+        // Fetch supervisor info if available
+        if (data.supervisor_id) {
+          try {
+            const supervisorResponse = await apiService.get(`/users/${data.supervisor_id}/public`);
+            setSupervisor(supervisorResponse.data);
+          } catch (err) {
+            console.error('Error fetching supervisor:', err);
+          }
+        }
       } else {
         setError('Research project not found');
       }
@@ -88,16 +111,17 @@ const ProjectDetailPage: React.FC = () => {
   };
 
   const handleViewDocument = () => {
-  if (!project) return; // Add this null check
-  
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-  const cleanBaseUrl = API_BASE_URL.endsWith('/api') 
-    ? API_BASE_URL.slice(0, -4) 
-    : API_BASE_URL.replace(/\/$/, '');
-  
-  const viewUrl = `${cleanBaseUrl}/api/projects/${project.slug}/view-document`;
-  window.open(viewUrl, '_blank');
-};
+    if (!project) return; // Add this null check
+    
+    const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const cleanBaseUrl = API_BASE_URL.endsWith('/api') 
+      ? API_BASE_URL.slice(0, -4) 
+      : API_BASE_URL.replace(/\/$/, '');
+    
+    const viewUrl = `${cleanBaseUrl}/api/projects/${project.slug}/view-document`;
+    window.open(viewUrl, '_blank');
+  };
+
   // Also log when buttons are rendered
   console.log('Rendering buttons', project?.document_filename);
 
@@ -373,7 +397,7 @@ const ProjectDetailPage: React.FC = () => {
                       bgcolor: '#0d4715',
                       transform: 'translateY(-2px)',
                       boxShadow: '0 10px 30px rgba(27, 94, 32, 0.4)'
-                    }
+                                    }
                   }}
                 >
                   View Document
@@ -404,7 +428,7 @@ const ProjectDetailPage: React.FC = () => {
                       transform: 'translateY(-2px)',
                       boxShadow: '0 8px 24px rgba(46, 125, 50, 0.3)'
                     },
-                                        '&:disabled': {
+                    '&:disabled': {
                       borderColor: '#c8e6c9',
                       color: '#81c784'
                     }
@@ -533,6 +557,87 @@ const ProjectDetailPage: React.FC = () => {
               </Paper>
             )}
 
+            {/* Figures Gallery */}
+            {figures.length > 0 && (
+              <Paper sx={{ 
+                p: { xs: 2, sm: 4 }, 
+                mb: { xs: 2, sm: 4 },
+                borderRadius: 4,
+                border: '2px solid #c8e6c9',
+                boxShadow: '0 4px 16px rgba(27, 94, 32, 0.1)',
+                background: 'linear-gradient(135deg, #ffffff 0%, #f1f8e9 100%)'
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: { xs: 2, sm: 3 } }}>
+                  <Avatar sx={{ bgcolor: '#388e3c', width: { xs: 32, sm: 40 }, height: { xs: 32, sm: 40 } }}>
+                    <ResearchIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                  </Avatar>
+                  <Typography variant={isMobile ? "h6" : "h5"} sx={{ color: '#1b5e20', fontWeight: 'bold' }}>
+                    Research Figures
+                  </Typography>
+                </Box>
+                <Grid container spacing={{ xs: 2, sm: 3 }}>
+                  {figures.map((figure) => (
+                    <Grid item xs={12} sm={6} key={figure.id}>
+                      <Card sx={{
+                        borderRadius: 2,
+                        border: '1px solid #e8f5e9',
+                        overflow: 'hidden',
+                        '&:hover': {
+                          boxShadow: '0 4px 16px rgba(27, 94, 32, 0.2)',
+                          transform: 'translateY(-2px)',
+                          transition: 'all 0.3s ease'
+                        }
+                      }}>
+                        <Box sx={{ 
+                          height: { xs: 200, sm: 250 }, 
+                          bgcolor: '#f5f5f5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          overflow: 'hidden'
+                        }}>
+                          <img 
+                            src={figure.url} 
+                            alt={figure.title}
+                            style={{
+                              maxWidth: '100%',
+                              maxHeight: '100%',
+                              objectFit: 'contain'
+                            }}
+                          />
+                        </Box>
+                        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                          <Typography 
+                            variant={isMobile ? "body1" : "h6"} 
+                            sx={{ 
+                              fontWeight: 'bold', 
+                              color: '#1b5e20',
+                              mb: 1,
+                              fontSize: { xs: '0.95rem', sm: '1.1rem' }
+                            }}
+                          >
+                            {figure.title}
+                          </Typography>
+                          {figure.caption && (
+                            <Typography 
+                              variant="body2" 
+                              sx={{ 
+                                color: '#2e7d32',
+                                lineHeight: 1.6,
+                                fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                              }}
+                            >
+                              {figure.caption}
+                            </Typography>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Paper>
+            )}
+
             {/* Additional Research Information */}
             <Paper sx={{ 
               p: { xs: 2, sm: 4 }, 
@@ -607,8 +712,7 @@ const ProjectDetailPage: React.FC = () => {
                     </Typography>
                   </Box>
 
-                  {project.institution && (
-                    <Box sx={{
+                  {project.institution && (                    <Box sx={{
                       p: { xs: 1.5, sm: 2 },
                       bgcolor: 'rgba(46, 125, 50, 0.05)',
                       borderRadius: 2,
@@ -647,7 +751,7 @@ const ProjectDetailPage: React.FC = () => {
                     </Box>
                   )}
 
-                  {project.supervisor && (
+                  {(project.supervisor || supervisor) && (
                     <Box sx={{
                       p: { xs: 1.5, sm: 2 },
                       bgcolor: 'rgba(76, 175, 80, 0.05)',
@@ -657,9 +761,47 @@ const ProjectDetailPage: React.FC = () => {
                       <Typography variant="body2" sx={{ color: '#388e3c', fontWeight: 600, mb: 1, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                         Research Supervisor
                       </Typography>
-                      <Typography variant={isMobile ? "body2" : "body1"} sx={{ color: '#2e7d32', fontWeight: 600, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-                        {project.supervisor}
-                      </Typography>
+                      {supervisor ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1 }}>
+                          {supervisor.profile_picture_url && (
+                            <Avatar 
+                              src={supervisor.profile_picture_url} 
+                              alt={supervisor.full_name}
+                              sx={{ width: 40, height: 40 }}
+                            />
+                          )}
+                          <Box>
+                            <Link 
+                              to={`/supervisors/${supervisor.profile_slug}`}
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Typography 
+                                variant={isMobile ? "body2" : "body1"} 
+                                sx={{ 
+                                  color: '#1b5e20',
+                                  fontWeight: 'bold',
+                                  fontSize: { xs: '0.875rem', sm: '1rem' },
+                                  '&:hover': {
+                                    color: '#2e7d32',
+                                    textDecoration: 'underline'
+                                  }
+                                }}
+                              >
+                                {supervisor.full_name}
+                              </Typography>
+                            </Link>
+                            {supervisor.institution && (
+                              <Typography variant="caption" sx={{ color: '#388e3c', display: 'block' }}>
+                                {supervisor.institution}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      ) : (
+                        <Typography variant={isMobile ? "body2" : "body1"} sx={{ color: '#2e7d32', fontWeight: 600, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                          {project.supervisor}
+                        </Typography>
+                      )}
                     </Box>
                   )}
 
@@ -702,7 +844,7 @@ const ProjectDetailPage: React.FC = () => {
                       <Typography variant={isMobile ? "body2" : "body1"} sx={{ 
                         color: '#2e7d32', 
                         fontWeight: 600, 
-                                                mb: 1,
+                        mb: 1,
                         fontSize: { xs: '0.875rem', sm: '1rem' },
                         wordBreak: 'break-word'
                       }}>
