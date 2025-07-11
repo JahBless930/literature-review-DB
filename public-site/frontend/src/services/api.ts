@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ProjectFigure, UserProfile } from '../types';
 
 // Remove /api if it's already included in the environment variable
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -18,6 +19,7 @@ export interface Project {
   institution?: string;
   department?: string;
   supervisor?: string;
+  supervisor_id?: number; // Add this for fetching supervisor details
   author_name: string;
   author_email?: string;
   is_published: boolean;
@@ -223,6 +225,59 @@ class ApiService {
   viewDocument(slug: string): void {
     const viewUrl = this.getDocumentViewUrl(slug);
     window.open(viewUrl, '_blank');
+  }
+
+  // Profile endpoints
+  async updateProfile(data: FormData): Promise<UserProfile> {
+    const response = await this.api.put('/api/users/profile', data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  }
+
+  async getProfilePicture(): Promise<string> {
+    const response = await this.api.get('/api/users/profile/picture', {
+      responseType: 'blob'
+    });
+    return URL.createObjectURL(response.data);
+  }
+
+  // Figure endpoints
+  async uploadFigure(projectId: number, data: FormData): Promise<ProjectFigure> {
+    const response = await this.api.post(`/api/projects/${projectId}/figures`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  }
+
+  async getProjectFigures(projectId: number): Promise<ProjectFigure[]> {
+    const response = await this.api.get(`/api/projects/${projectId}/figures`);
+    return response.data;
+  }
+
+  async deleteFigure(figureId: number): Promise<void> {
+    await this.api.delete(`/api/figures/${figureId}`);
+  }
+
+  // Generic HTTP methods for custom endpoints
+  async get<T = any>(endpoint: string, config?: any): Promise<T> {
+    const response = await this.api.get(endpoint, config);
+    return response.data;
+  }
+
+  async post<T = any>(endpoint: string, data?: any, config?: any): Promise<T> {
+    const response = await this.api.post(endpoint, data, config);
+    return response.data;
+  }
+
+  async put<T = any>(endpoint: string, data?: any, config?: any): Promise<T> {
+    const response = await this.api.put(endpoint, data, config);
+    return response.data;
+  }
+
+  async delete<T = any>(endpoint: string, config?: any): Promise<T> {
+    const response = await this.api.delete(endpoint, config);
+    return response.data;
   }
 }
 
