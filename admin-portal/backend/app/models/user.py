@@ -16,7 +16,15 @@ class User(BaseModel):
     department = Column(String(255))
     phone = Column(String(20))
     
-    # Extended Profile Information
+    # Role & Status
+    role = Column(String(50), default="faculty")  # "main_coordinator", "faculty"
+    is_active = Column(Boolean, default=True)
+    
+    # Password Reset
+    reset_token = Column(String(255), nullable=True, index=True)
+    reset_token_expires = Column(DateTime, nullable=True)
+    
+    # Profile Information
     about = Column(Text, nullable=True)
     disciplines = Column(Text, nullable=True)  # JSON array or comma-separated
     research_interests = Column(Text, nullable=True)
@@ -33,17 +41,17 @@ class User(BaseModel):
     is_profile_public = Column(Boolean, default=True)
     profile_slug = Column(String, unique=True, index=True, nullable=True)
     
-    # Role & Status
-    role = Column(String(50), default="faculty")  # "main_coordinator", "faculty"
-    is_active = Column(Boolean, default=True)
-    
-    # Password Reset
-    reset_token = Column(String(255), nullable=True, index=True)
-    reset_token_expires = Column(DateTime, nullable=True)
-    
-    # Relationships
-    created_projects = relationship("Project", back_populates="created_by_user")
-    supervised_projects = relationship("Project", back_populates="supervisor_user", foreign_keys="Project.supervisor_id")
+    # Relationships - FIXED with explicit foreign_keys
+    created_projects = relationship(
+        "Project", 
+        back_populates="created_by_user",
+        foreign_keys="Project.created_by_id"
+    )
+    supervised_projects = relationship(
+        "Project", 
+        back_populates="supervisor_user",
+        foreign_keys="Project.supervisor_id"
+    )
     
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', email='{self.email}', role='{self.role}')>"
