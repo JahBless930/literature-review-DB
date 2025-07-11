@@ -17,7 +17,7 @@ class Project(BaseModel):
     academic_year = Column(String)
     institution = Column(String, index=True)
     department = Column(String)
-    supervisor = Column(String)
+    supervisor = Column(String)  # Keep for backward compatibility
     
     # Author Info
     author_name = Column(String, nullable=False)
@@ -44,11 +44,24 @@ class Project(BaseModel):
     
     # User Relationships
     created_by_id = Column(Integer, ForeignKey("users.id"))
-    created_by_user = relationship("User", back_populates="created_projects")
+    created_by_user = relationship(
+        "User", 
+        back_populates="created_projects",
+        foreign_keys=[created_by_id]
+    )
     
-    # Supervisor Relationship
+    # Supervisor relationship
     supervisor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    supervisor_user = relationship("User", back_populates="supervised_projects", foreign_keys=[supervisor_id])
+    supervisor_user = relationship(
+        "User", 
+        back_populates="supervised_projects",
+        foreign_keys=[supervisor_id]
+    )
     
-    # Figures Relationship
-    figures = relationship("ProjectFigure", back_populates="project", cascade="all, delete-orphan", order_by="ProjectFigure.order_index")
+    # Figures relationship
+    figures = relationship(
+        "ProjectFigure", 
+        back_populates="project", 
+        cascade="all, delete-orphan",
+        order_by="ProjectFigure.order_index"
+    )
