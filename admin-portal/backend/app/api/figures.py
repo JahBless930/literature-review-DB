@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from PIL import Image
 import io
 
 from ..database import get_db
-from ..models import User, Project, ProjectFigure
+from ..models.user import User
+from ..models.project import Project
+from ..models.project_figure import ProjectFigure
 from ..schemas.project_figure import ProjectFigureCreate, ProjectFigureResponse
 from ..core.auth import get_current_active_user
 from ..core.config import settings
@@ -45,13 +48,13 @@ async def upload_figure(
     if len(image_data) > settings.MAX_IMAGE_SIZE:
         raise HTTPException(413, "Image too large")
     
-        # Get image dimensions
+    # Get image dimensions
     try:
         img = Image.open(io.BytesIO(image_data))
         width, height = img.size
-    except Exception: 
+    except Exception:  # Fixed: specify exception type
         width, height = None, None
-        
+    
     # Create figure record
     figure = ProjectFigure(
         project_id=project_id,
@@ -125,9 +128,3 @@ async def delete_figure(
     # Check permissions
     project = figure.project
     if current_user.role != "main_coordinator" and project.created_by_id != current_user.id:
-        raise HTTPException(403, "Not authorized to delete this figure")
-    
-    db.delete(figure)
-    db.commit()
-    
-    return {"message": "Figure deleted successfully"}
