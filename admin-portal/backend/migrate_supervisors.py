@@ -2,13 +2,26 @@
 Script to migrate existing supervisor string data to user relationships
 """
 from sqlalchemy.orm import Session
-from app.database import SessionLocal
+from sqlalchemy import text, inspect
+from app.database import SessionLocal, engine
 from app.models.project import Project
 from app.models.user import User
 from app.core.constants import SUPERVISORS
 
+def check_supervisor_id_column():
+    """Check if supervisor_id column exists"""
+    inspector = inspect(engine)
+    columns = [col['name'] for col in inspector.get_columns('projects')]
+    return 'supervisor_id' in columns
+
 def migrate_supervisors():
     """Link existing projects to supervisor user accounts"""
+    
+    # First check if supervisor_id column exists
+    if not check_supervisor_id_column():
+        print("⚠️  supervisor_id column doesn't exist yet. Run add_missing_columns.py first.")
+        return
+    
     db = SessionLocal()
     
     try:
@@ -79,7 +92,7 @@ def migrate_supervisors():
             print("\n⚠️  Projects with unmatched supervisors:")
             for proj_id, title, supervisor in not_found[:10]:  # Show first 10
                 print(f"   - Project {proj_id}: '{title[:40]}...' → '{supervisor}'")
-            if len(not_found) > 10:  # FIXED INDENTATION HERE
+            if len(not_found) > 10:
                 print(f"   ... and {len(not_found) - 10} more")
         
     except Exception as e:
