@@ -10,6 +10,8 @@ export interface Project {
   institution?: string;
   department?: string;
   supervisor?: string;
+  supervisor_id?: number;  // Add this
+  supervisor_user?: UserProfile;  // Add this
   author_name: string;
   author_email?: string;
   is_published: boolean;
@@ -21,6 +23,7 @@ export interface Project {
   document_size?: number;
   document_storage?: string;
   meta_description?: string;
+  figures?: ProjectFigure[];  // Add this
 }
 
 export interface ProjectSummary {
@@ -33,11 +36,52 @@ export interface ProjectSummary {
   institution?: string;
   author_name: string;
   publication_date: string;
-  view_count?: number;        // Made optional for API compatibility
-  download_count?: number;    // Made optional for API compatibility
-  is_published?: boolean;     // Made optional for API compatibility
+  view_count?: number;
+  download_count?: number;
+  is_published?: boolean;
 }
 
+// Add these new interfaces
+export interface ProjectFigure {
+  id: number;
+  project_id: number;
+  title: string;
+  caption?: string;
+  order_index: number;
+  filename: string;
+  size: number;
+  content_type: string;
+  width?: number;
+  height?: number;
+  url: string;
+  created_at: string;
+}
+
+export interface UserProfile {
+  id: number;
+  full_name: string;
+  email: string;
+  institution?: string;
+  department?: string;
+  about?: string;
+  disciplines?: string[];
+  research_interests?: string;
+  office_location?: string;
+  office_hours?: string;
+  profile_picture_url?: string;
+  profile_slug?: string;
+  supervised_projects?: ProjectSummary[];
+}
+
+export interface SupervisorInfo {
+  id: string;
+  name: string;
+  email: string;
+  institution: string;
+  title: string;
+}
+
+// Existing interfaces...
 export interface SearchFilters {
   query?: string;
   research_area?: string;
@@ -62,7 +106,6 @@ export interface SiteStats {
   total_downloads: number;
 }
 
-// Additional types for better type safety
 export interface ApiError {
   message: string;
   status?: number;
