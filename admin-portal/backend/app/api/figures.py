@@ -45,13 +45,13 @@ async def upload_figure(
     if len(image_data) > settings.MAX_IMAGE_SIZE:
         raise HTTPException(413, "Image too large")
     
-    # Get image dimensions
+        # Get image dimensions
     try:
         img = Image.open(io.BytesIO(image_data))
         width, height = img.size
-        except:
+    except Exception: 
         width, height = None, None
-    
+        
     # Create figure record
     figure = ProjectFigure(
         project_id=project_id,
