@@ -46,7 +46,7 @@ app.add_middleware(
         "http://localhost:3001",
         "https://uhas-research-hub.onrender.com",
         "https://your-frontend-domain.com",
-        "*"  # Remove this in production and add specific domains
+        "https://literature-review-db-2.onrender.com"  # Remove this in production and add specific domains
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
