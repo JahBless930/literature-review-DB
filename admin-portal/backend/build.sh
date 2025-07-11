@@ -45,6 +45,10 @@ Base.metadata.create_all(bind=engine)
 print('✓ Database tables ready')
 "
 fi
+echo "3.5. Adding missing columns if needed..."
+if [ -f add_missing_columns.py ]; then
+    python add_missing_columns.py || echo "Some columns might already exist"
+fi
 
 echo "4. Testing database storage..."
 python -c "
