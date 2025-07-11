@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { User, Project, DashboardStats, LoginRequest, AuthResponse, FormConstants } from '../types';
+import { User, Project, DashboardStats, LoginRequest, AuthResponse, FormConstants, ProjectFigure } from '../types';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001/api';
 
@@ -177,6 +177,21 @@ class AdminApiService {
     await this.api.patch(`/users/${userId}/toggle-status`);
   }
 
+  // Profile endpoints
+  async updateProfile(data: FormData): Promise<User> {
+    const response = await this.api.put('/users/profile', data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  }
+
+  async getProfilePicture(): Promise<string> {
+    const response = await this.api.get('/users/profile/picture', {
+      responseType: 'blob'
+    });
+    return URL.createObjectURL(response.data);
+  }
+
   // Projects
   async getProjects(params?: {
     search?: string;
@@ -239,6 +254,23 @@ class AdminApiService {
     await this.api.delete(`/projects/${projectId}/file`);
   }
 
+  // Figure endpoints
+  async uploadFigure(projectId: number, data: FormData): Promise<ProjectFigure> {
+    const response = await this.api.post(`/projects/${projectId}/figures`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  }
+
+  async getProjectFigures(projectId: number): Promise<ProjectFigure[]> {
+    const response = await this.api.get(`/projects/${projectId}/figures`);
+    return response.data;
+  }
+
+  async deleteFigure(figureId: number): Promise<void> {
+    await this.api.delete(`/figures/${figureId}`);
+  }
+
   // Utilities
   async getFormConstants(): Promise<FormConstants> {
     const response = await this.api.get('/utils/constants');
@@ -274,6 +306,30 @@ class AdminApiService {
   // Health check method
   async healthCheck(): Promise<{ status: string; version: string }> {
     const response = await this.api.get('/health');
+    return response.data;
+  }
+
+  // Generic get method for custom endpoints
+  async get<T = any>(endpoint: string, config?: any): Promise<T> {
+    const response = await this.api.get(endpoint, config);
+    return response.data;
+  }
+
+  // Generic post method for custom endpoints
+  async post<T = any>(endpoint: string, data?: any, config?: any): Promise<T> {
+    const response = await this.api.post(endpoint, data, config);
+    return response.data;
+  }
+
+  // Generic put method for custom endpoints
+  async put<T = any>(endpoint: string, data?: any, config?: any): Promise<T> {
+    const response = await this.api.put(endpoint, data, config);
+    return response.data;
+  }
+
+  // Generic delete method for custom endpoints
+  async delete<T = any>(endpoint: string, config?: any): Promise<T> {
+    const response = await this.api.delete(endpoint, config);
     return response.data;
   }
 }
