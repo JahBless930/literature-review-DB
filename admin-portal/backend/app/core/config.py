@@ -28,7 +28,13 @@ class Settings(BaseSettings):
     
     # File Upload - Database Storage
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB for database storage
-    ALLOWED_FILE_TYPES: List[str] = [".pdf", ".doc", ".docx", ".txt", ".rtf"]
+    
+    # Allowed file types - Combined list
+    ALLOWED_FILE_TYPES: List[str] = [".pdf", ".doc", ".docx", ".txt", ".rtf", ".jpg", ".jpeg", ".png", ".gif", ".webp"]
+    
+    # Separate file type lists for different purposes
+    ALLOWED_DOCUMENT_TYPES: List[str] = [".pdf", ".doc", ".docx", ".txt", ".rtf"]
+    ALLOWED_IMAGE_EXTENSIONS: List[str] = [".jpg", ".jpeg", ".png", ".gif", ".webp"]
     
     # Storage Backend
     STORAGE_BACKEND: str = "database"  # Always database now
@@ -42,7 +48,7 @@ class Settings(BaseSettings):
     # Frontend URL for password reset links
     FRONTEND_URL: str = "https://research-hub-admin-portal.onrender.com"
 
-     # Backend URL (for API calls)
+    # Backend URL (for API calls)
     BACKEND_URL: str = "https://literature-admin-backend.onrender.com"
     
     # CORS
