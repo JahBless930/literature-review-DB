@@ -66,10 +66,10 @@ except Exception as e:
 "
 
 echo "5. Creating/verifying admin user..."
-if [ -f create_admin.py ]; then
+if [ -f create_admin_minimal.py ]; then
+    python create_admin_minimal.py || echo "Admin user might already exist"
+elif [ -f create_admin.py ]; then
     python create_admin.py || echo "Admin user might already exist"
-else
-    echo "Warning: create_admin.py not found, skipping admin creation"
 fi
 
 echo "6. Creating/verifying supervisor accounts..."
